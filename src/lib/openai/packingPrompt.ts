@@ -1,4 +1,4 @@
-// [CYCL:489021c1] Builds the structured OpenAI prompt for packing list generation and validates the response
+// [CYCL:489021c1] Builds the structured prompt for packing list generation (Anthropic Claude) and validates the response
 import { z } from "zod";
 
 export const packingResponseSchema = z.object({

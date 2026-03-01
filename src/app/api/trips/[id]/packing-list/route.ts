@@ -1,9 +1,9 @@
 // [CYCL:489021c1] GET + POST /api/trips/[id]/packing-list
 // GET: returns the full packing list with items grouped by category
-// POST: calls OpenAI to generate a new list, stores in DB, and returns it
+// POST: calls Anthropic Claude to generate a new list, stores in DB, and returns it
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { getOpenAIClient } from "@/lib/openai/client";
+import { getAnthropicClient } from "@/lib/openai/client";
 import {
   buildPackingSystemPrompt,
   buildPackingUserPrompt,
@@ -107,13 +107,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       await supabase.from("packing_lists").delete().eq("id", existingList.id);
     }
 
-    // Call OpenAI to generate packing list
-    const openai = getOpenAIClient();
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      response_format: { type: "json_object" },
+    // Call Anthropic Claude to generate packing list
+    const anthropic = getAnthropicClient();
+    const message = await anthropic.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 2000,
+      system: buildPackingSystemPrompt(),
       messages: [
-        { role: "system", content: buildPackingSystemPrompt() },
         {
           role: "user",
           content: buildPackingUserPrompt({
@@ -124,14 +124,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           }),
         },
       ],
-      temperature: 0.7,
-      max_tokens: 2000,
     });
 
-    const rawJson = completion.choices[0]?.message?.content;
+    // Extract text content from the response
+    const textBlock = message.content.find((block) => block.type === "text");
+    const rawJson = textBlock?.type === "text" ? textBlock.text : null;
+
     if (!rawJson) {
       return NextResponse.json(
-        { error: "OpenAI returned an empty response" },
+        { error: "Claude returned an empty response" },
         { status: 502 }
       );
     }
@@ -141,9 +142,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
       parsed = packingResponseSchema.parse(JSON.parse(rawJson));
     } catch {
-      console.error("OpenAI response failed Zod validation:", rawJson);
+      console.error("Claude response failed Zod validation:", rawJson);
       return NextResponse.json(
-        { error: "OpenAI response did not match expected schema" },
+        { error: "Claude response did not match expected schema" },
         { status: 502 }
       );
     }
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Build items array from OpenAI response + preserved custom items
+    // Build items array from Claude response + preserved custom items
     const itemsToInsert: {
       list_id: string;
       category: string;
