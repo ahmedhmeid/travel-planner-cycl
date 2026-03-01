@@ -24,6 +24,7 @@ export default function DestinationSpinner({
 }: DestinationSpinnerProps) {
   const [slotItems, setSlotItems] = useState<Country[]>([]);
   const [spinKey, setSpinKey] = useState(0);
+  const [resultName, setResultName] = useState<string | null>(null);
   const resultRef = useRef<Country | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -43,6 +44,7 @@ export default function DestinationSpinner({
     const result = pickRandom(pool);
     if (!result) return;
     resultRef.current = result;
+    setResultName(result.name);
     const sequence = buildSlotSequence(result, pool);
     setSlotItems(sequence);
     setSpinKey((k) => k + 1);
@@ -120,8 +122,8 @@ export default function DestinationSpinner({
 
       {/* Spin button */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
-        {resultRef.current && !isSpinning
-          ? `Your destination is ${resultRef.current.name}`
+        {resultName && !isSpinning
+          ? `Your destination is ${resultName}`
           : ""}
       </div>
 
