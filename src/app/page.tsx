@@ -10,12 +10,20 @@ export default function Home() {
       <p className="text-white/80 text-xl mb-10 max-w-lg">
         Fly to a random country without worries — discover your next adventure.
       </p>
-      <Link
-        href="/spinner"
-        className="px-10 py-4 bg-white text-indigo-700 font-bold text-lg rounded-2xl shadow-xl hover:bg-indigo-50 transition-colors"
-      >
-        🎲 Spin the Globe
-      </Link>
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <Link
+          href="/spinner"
+          className="px-10 py-4 bg-white text-indigo-700 font-bold text-lg rounded-2xl shadow-xl hover:bg-indigo-50 transition-colors"
+        >
+          🎲 Spin the Globe
+        </Link>
+        <Link
+          href="/profile/bucket-list"
+          className="px-8 py-4 bg-white/10 border border-white/30 text-white font-bold text-lg rounded-2xl hover:bg-white/20 transition-colors backdrop-blur-sm"
+        >
+          ⭐ Bucket List
+        </Link>
+      </div>
     </main>
   );
 }
